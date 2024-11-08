@@ -1,4 +1,4 @@
-package se.monty.adventure.game;
+package se.monty.adventure.game.model;
 
 public class Resident extends Entity {
 

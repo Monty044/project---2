@@ -1,172 +1,189 @@
 package se.monty.adventure.game;
 
-import se.monty.adventure.game.Burglar;
-import se.monty.adventure.game.Resident;
-import se.monty.adventure.game.Entity;
-
+import se.monty.adventure.game.model.Burglar;
+import se.monty.adventure.game.model.Resident;
 
 import java.util.Scanner;
-
 
 public class Game {
     private Resident resident;
     private Burglar burglar;
-    private boolean fryingPanFound = false;
-    private boolean running = true;
+    private boolean fryingPanFound;
+    private boolean running;
 
+    private Room currentRoom;
 
-    static Room currentroom = Room.LIVINGROOM;
-
-    enum Room{
-        KITCHEN,HALL,LIVINGROOM,BEDROOM,OFFICE
+    enum Room {
+        KITCHEN, HALL, LIVINGROOM, BEDROOM, OFFICE
     }
 
     public Game(){
-        this.resident = new Resident(150, 20, "resident");
-        this.burglar = new Burglar(200, 40, "burglar");
+        this.resident = new Resident(150, 20, "Resident");
+        this.burglar = new Burglar(200, 40, "Burglar");
+        this.fryingPanFound = false;
+        this.running = true;
+        this.currentRoom = Room.LIVINGROOM;
     }
-
 
     public void startGame() {
-
-
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Welcome to the game you are in the living room");
+        String playAgain;
 
+        do {
+            initializeGame();
+            System.out.println("Welcome to the game! You are in the living room.");
 
-        while (running && resident.isConscious()) {
+            while (running && resident.isConscious()) {
+                switch (currentRoom) {
+                    case LIVINGROOM:
+                        System.out.println("\nWhich room do you want to go to? (Kitchen, Hall, Office, Bedroom):");
+                        System.out.println("Available options: KITCHEN, HALL, OFFICE, BEDROOM");
+                        String input = scanner.nextLine().trim().toUpperCase();
 
-            if (currentroom.equals(Room.LIVINGROOM)) {
-                System.out.println("Which room do you want to go to? (Kitchen, hall, office, bedroom):");
-                String input = scanner.nextLine();
+                        switch (input){
+                            case "KITCHEN":
+                                currentRoom = Room.KITCHEN;
+                                enterKitchen(scanner);
+                                break;
 
+                            case "HALL":
+                                currentRoom = Room.HALL;
+                                startFight(scanner);
+                                break;
 
-                switch (input.toUpperCase()){
+                            case "BEDROOM":
+                                currentRoom = Room.BEDROOM;
+                                enterBedroom(scanner);
+                                break;
 
-                    case "KITCHEN" -> { currentroom = Room.KITCHEN;
-                        enterKitchen();
+                            case "OFFICE":
+                                currentRoom = Room.OFFICE;
+                                enterOffice(scanner);
+                                break;
+
+                            default:
+                                System.out.println("Invalid Room. Try again.");
+                        }
                         break;
 
-                    }
+                    case KITCHEN:
+                    case OFFICE:
+                    case BEDROOM:
+                    case HALL:
+                        System.out.println("\nDo you want to go back to the living room? (y/n)");
+                        String choice = scanner.nextLine().trim().toLowerCase();
+                        if(choice.equals("y")) {
+                            currentRoom = Room.LIVINGROOM;
+                            enterLivingRoom();
+                        } else {
+                            System.out.println("You stay in the current room.");
 
-
-                    case "HALL" -> { currentroom = Room.HALL;
-                        StartFight();
+                        }
                         break;
-
-                    }
-
-
-                    case "BEDROOM" -> { currentroom = Room.BEDROOM;
-                        enterBedroom();
-                        break;
-                    }
-
-
-                    case "OFFICE" -> { currentroom = Room.OFFICE;
-                        enterOffice();
-                        break;
-                    }
-
-
-                    case "LIVINGROOM" -> { currentroom = Room.LIVINGROOM;
-                        enterLivingroom();
-                    }
-
-                    default ->
-                        System.out.println("Invalid Room. try again.");
-
-
-
-
                 }
-
-
-
-
-            }
-            else {
-                System.out.println("do you want to go back to the living room");
-                currentroom = Room.LIVINGROOM;
             }
 
-        }
+            if(!resident.isConscious()) {
+                System.out.println("You have been defeated. Game over.");
+            } else if (!burglar.isConscious() && currentRoom == Room.OFFICE) {
+                System.out.println("Congratulations! You have defeated the burglar and called the police.");
+            }
 
+            System.out.println("\nWould you like to play again? (y/n)");
+            playAgain = scanner.nextLine().trim().toLowerCase();
+
+        } while(playAgain.equals("y"));
+
+        System.out.println("Thank you for playing!");
+        scanner.close();
     }
 
-    private void enterLivingroom(){
-        System.out.println("Your back in the living room:");
+    private void initializeGame(){
+        this.resident = new Resident(150, 20, "Resident");
+        this.burglar = new Burglar(200, 40, "Burglar");
+        this.fryingPanFound = false;
+        this.running = true;
+        this.currentRoom = Room.LIVINGROOM;
     }
 
-    private void enterKitchen() {
+    private void enterLivingRoom(){
+        System.out.println("\nYou are back in the living room.");
+    }
+
+    private void enterKitchen(Scanner scanner) {
+        System.out.println("\nYou are in the kitchen. There is a frying pan here.");
         if (!fryingPanFound) {
-            System.out.println("You found a frying pan!, your big man ting");
-            resident.setDamage(40);
-            fryingPanFound = true;
-        }else{
-            System.out.println("You are in the kitchen but there is nothing left to find");
+            System.out.println("Do you want to pick up the frying pan? (y/n)");
+            String choice = scanner.nextLine().trim().toLowerCase();
+            if(choice.equals("y")) {
+                System.out.println("You picked up the frying pan! Your damage has increased to 40.");
+                resident.setDamage(40);
+                fryingPanFound = true;
+            } else {
+                System.out.println("You chose not to pick up the frying pan.");
+            }
+        } else{
+            System.out.println("There is nothing else to find in the kitchen.");
         }
     }
 
-    private void enterOffice() {
+    private void enterOffice(Scanner scanner) {
+        System.out.println("\nYou are in the office.");
         if (!burglar.isConscious()) {
-            System.out.println("You called the police and won the game good job!");
-            running = false;
+            System.out.println("The burglar is unconscious. Do you want to call the police? (y/n)");
+            String choice = scanner.nextLine().trim().toLowerCase();
+            if(choice.equals("y")) {
+                System.out.println("You have called the police and won the game! Good job!");
+                running = false;
+            } else {
+                System.out.println("You chose not to call the police yet.");
+            }
         } else {
             System.out.println("The burglar is still out there! You can't call the police yet.");
         }
     }
 
-    private void enterBedroom() {
-        System.out.println("You entered the room and the burglar is not here look somewhere else");
+    private void enterBedroom(Scanner scanner) {
+        System.out.println("\nYou entered the bedroom. The burglar is not here. Look somewhere else.");
     }
 
+    private void startFight(Scanner scanner) {
+        System.out.println("\nYou encounter the burglar!");
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        String playAgain;
-
-        do {
-            Game game = new Game();
-            game.startGame();
-
-            System.out.println("Would you like to play again? (y/n)");
-            playAgain = scanner.nextLine();
-
-        }while(playAgain.equalsIgnoreCase("y"));
-        System.out.println("Thank you for playing!");
-    }
-
-
-    private void StartFight() {
-        System.out.println("You encounter the burglar!");
         while(resident.isConscious() && burglar.isConscious()) {
-            System.out.println("you punched the burglar!");
-            if(!burglar.blockchance()) {
-                resident.punch(burglar);
-                System.out.println("Burglar's health: " + burglar.getHealth());
-            }else {
-                System.out.println("The burglar blocked your attack!");
+            System.out.println("\nDo you want to punch the burglar? (y/n)");
+            String choice = scanner.nextLine().trim().toLowerCase();
+            if(choice.equals("y")) {
+                if(!burglar.blockchance()) {
+                    resident.punch(burglar);
+                    System.out.println("You punched the burglar!");
+                    System.out.println("Burglar's health: " + burglar.getHealth());
+                } else {
+                    System.out.println("The burglar blocked your attack!");
+                }
+            } else {
+                System.out.println("You chose not to punch the burglar.");
             }
 
-            if (burglar.isConscious()) {
-                System.out.println("the burglar punches you");
+            if(burglar.isConscious()) {
+                System.out.println("The burglar punches you back!");
                 burglar.punch(resident);
                 System.out.println("Your health: " + resident.getHealth());
             }
 
-        }
-        if (!burglar.isConscious()) {
-            System.out.println("You knocked out the burglar!");
+            if(!burglar.isConscious()) {
+                System.out.println("You knocked out the burglar!");
+            }
 
-        }else {
-            System.out.println("You lost the fight. Game over");
-            running = false;
+            if(!resident.isConscious()) {
+                System.out.println("You have been defeated by the burglar.");
+                running = false;
+            }
         }
-
     }
 
-
+    public static void main(String[] args) {
+        Game game = new Game();
+        game.startGame();
+    }
 }
-
-

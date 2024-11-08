@@ -1,4 +1,5 @@
-package se.monty.adventure.game;
+package se.monty.adventure.game.model;
+
 import java.util.Random;
 
 public class Burglar extends Entity {

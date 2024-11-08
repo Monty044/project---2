@@ -1,4 +1,4 @@
-package se.monty.adventure.game;
+package se.monty.adventure.game.model;
 
 import java.util.Random;
 
